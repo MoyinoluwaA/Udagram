@@ -28,7 +28,24 @@ import {filterImageFromURL, deleteLocalFiles} from './util/util';
   //   the filtered image file [!!TIP res.sendFile(filteredpath); might be useful]
 
   /**************************************************************************** */
-  
+  app.get("/filteredimage", async (req: Request, res: Response) => {
+    const { image_url } : { image_url: string} = req.query;
+
+    if (!image_url) {
+      res.status(400).send({message: 'image_url is required as query params'});
+      return;
+    }
+
+    if (!image_url.startsWith('https')) {
+      res.status(400).send({message: 'image_url comes from an insecure domain'});
+    }
+
+    const filteredPath: string = await filterImageFromURL(image_url);
+
+    res.status(200).sendFile(filteredPath, () => {
+      deleteLocalFiles([filteredPath]);
+    })
+  })
   //! END @TODO1
   
   // Root Endpoint
